@@ -28,19 +28,40 @@ The copy consists of four parts, following the AIDA Framework.
 
 The copy for each part is clear and concise."))
 
-(defn generate [prompt]
+
+(defn generate [& {:keys [max_tokens
+                          num_generations
+                          truncate
+                          model
+                          p
+                          k
+                          presence_penalty
+                          frequency_penalty
+                          temperature
+                          prompt]
+                   :or {max_tokens 1200
+                        num_generations 2
+                        truncate "NONE"
+                        model "command"
+                        p 0.95
+                        k 0
+                        presence_penalty 0
+                        frequency_penalty 0
+                        temperature 0.3
+                        prompt "Give me an idea for a new reality TV show"}
+                   :as parameters}]
   (let [options {:as :auto
                  :content-type :json                        
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
-                 :form-params {:max_tokens 1200
-                               :num_generations 2
-                               :truncate "NONE"
+                 :form-params {:max_tokens max_tokens
+                               :num_generations num_generations
+                               :truncate truncate
                                :prompt prompt
-                               :model "command"
-                               :p 0.95
-                               :k 0
-                               :presence_penalty 0
-                               :frequency_penalty 0
-                               :temperature 0.3}}]
+                               :model model
+                               :p p
+                               :k k
+                               :presence_penalty presence_penalty
+                               :frequency_penalty frequency_penalty
+                               :temperature temperature}}]    
     (-> (client/post (str (System/getProperty "cohere.api.url") "/generate") options)
        :body)))

@@ -94,13 +94,20 @@
     (-> (client/post (str (System/getProperty "cohere.api.url") "/finetune/ListFinetunes") options )
        :body)))
 
+(defn csv->jsonl [file]
+  (let [lines (str/split-lines (slurp file))]
+    (doseq [line lines
+          :let [els (str/split line #"\t")]]
+      (spit "/tmp/eval.jsonl" (str (json/generate-string {:prompt (first els) :completion (last els)}) "\n") :append true))))
+
 (defn prepare-dataset []
   (let [train-dataset-url "https://raw.githubusercontent.com/cohere-ai/notebooks/main/notebooks/data/content_rephrasing_train.jsonl"]
     (spit "/tmp/train.jsonl" (:body (client/get train-dataset-url)))
-    (dataset/jsonl-dataset :train-file "/tmp/train.jsonl")))
+    (dataset/jsonl-dataset :train-file "/tmp/train.jsonl" :eval-file "/tmp/eval.jsonl")))
 
 (defn jsonl->json [url]
   (let [jsonl (str/split-lines (:body (client/get url)))]
     (for [line jsonl]
       (json/parse-string line true))))
+
 
