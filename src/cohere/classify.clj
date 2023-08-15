@@ -15,15 +15,6 @@
           {:text  "Re: Follow up from today’s meeting" :label "not spam"}
           {:text  "Pre-read for tomorrow" :label "not spam"}])
 
-(defn classify [examples input]
-  (let [options {:as :auto
-                 :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
-                 :form-params {:truncate "END"
-                               :examples examples
-                               :inputs input}}]
-    (-> (client/post (str (System/getProperty "cohere.api.url") "/classify") options )
-       :body)))
 
 (def trec-thousand #(let [data (:body (client/get "https://cogcomp.seas.upenn.edu/Data/QA/QC/train_2000.label"))
                           lines (str/split data #"\n")]
@@ -33,3 +24,18 @@
                             :when (not (some #{label} ["ENTY:religion" "NUM:temp" "NUM:weight"]))]
                         {:text (str/join " " (rest s))
                          :label  label})))
+
+(defn classify [& {:keys [examples inputs model preset truncate] :or {model "embed-english-v2.0" truncate "END"}}]
+  {:pre [(some #{truncate} ["NONE" "START" "END"])]}
+  (let [options {:as :auto
+                 :content-type :json
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
+                 :form-params {:truncate truncate
+                               :examples examples
+                               :inputs inputs
+                               :model model
+                               :preset preset}}]
+    (-> (client/post (str (System/getProperty "cohere.api.url") "/classify") options )
+       :body)))
+
+
