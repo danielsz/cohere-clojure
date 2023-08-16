@@ -142,3 +142,13 @@
                                :logit_bias logit_bias}}]
     (-> (client/post (str api-endpoint "/generate") options)
        :body)))
+
+(defn detect-language [& {:keys [texts]}]
+  {:pre [(some? texts) (seq texts) (every? string? texts)]}
+  (let [options {:as :auto
+                 :content-type :json
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
+                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :form-params {:texts texts}}]
+    (-> (client/post (str api-endpoint "/detect-language") options )
+       :body)))
