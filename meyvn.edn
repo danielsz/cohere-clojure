@@ -23,5 +23,5 @@
  
  :profiles {:enabled true
             :development {:cohere-api-key "LghNYUI6REdWynYUYdhUzIKSijgZkuOR2yy4CPR3"
-                          :cohere-api-url "https://api.cohere.ai/v1"}
+                          :cohere-api-version "2022-12-06"}
             :production {}}}

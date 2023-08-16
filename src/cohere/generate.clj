@@ -29,16 +29,7 @@ The copy consists of four parts, following the AIDA Framework.
 The copy for each part is clear and concise."))
 
 
-(defn generate [& {:keys [max_tokens
-                          num_generations
-                          truncate
-                          model
-                          p
-                          k
-                          presence_penalty
-                          frequency_penalty
-                          temperature
-                          prompt]
+(defn generate [& {:keys [max_tokens num_generations truncate model p k presence_penalty frequency_penalty temperature prompt]
                    :or {max_tokens 1200
                         num_generations 2
                         truncate "NONE"
@@ -47,9 +38,8 @@ The copy for each part is clear and concise."))
                         k 0
                         presence_penalty 0
                         frequency_penalty 0
-                        temperature 0.3
-                        prompt "Give me an idea for a new reality TV show"}
-                   :as parameters}]
+                        temperature 0.3}}]
+  {:pre [(some? prompt)]}
   (let [options {:as :auto
                  :content-type :json                        
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}

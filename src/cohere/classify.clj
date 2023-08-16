@@ -26,7 +26,7 @@
                          :label  label})))
 
 (defn classify [& {:keys [examples inputs model preset truncate] :or {model "embed-english-v2.0" truncate "END"}}]
-  {:pre [(some #{truncate} ["NONE" "START" "END"])]}
+  {:pre [(some #{truncate} ["NONE" "START" "END"]) (some? examples) (some? inputs)]}
   (let [options {:as :auto
                  :content-type :json
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
