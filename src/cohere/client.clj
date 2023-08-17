@@ -1,5 +1,6 @@
 (ns cohere.client
-  (:require [clj-http.client :as client]))
+  (:require [clj-http.client :as client]
+            [clojure.java.io :as io]))
 
 (def api-endpoint "https://api.cohere.ai")
 
@@ -22,7 +23,7 @@
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :form-params {:tokens tokens
                                :model model}}]
-    (-> (client/post (str api-endpoint "/detokenize") options )
+    (-> (client/post (str api-endpoint "/detokenize") options)
        :body)))
 
 (defn rerank [& {:keys [query documents model top_n return_documents max_chunks_per_doc]
@@ -44,7 +45,7 @@
                                :max_chunks_per_doc max_chunks_per_doc
                                :top_n top_n
                                :model model}}]
-    (-> (client/post (str api-endpoint "/rerank") options )
+    (-> (client/post (str api-endpoint "/rerank") options)
        :body)))
 
 (defn embed [& {:keys [texts model truncate] :or {model "embed-english-v2.0" truncate "END"}}]
@@ -56,7 +57,7 @@
                  :form-params {:truncate truncate
                                :texts texts
                                :model model}}]
-    (-> (client/post (str api-endpoint "/embed") options )
+    (-> (client/post (str api-endpoint "/embed") options)
        :body)))
 
 (defn classify [& {:keys [examples inputs model preset truncate] :or {model "embed-english-v2.0" truncate "END"}}]
@@ -70,7 +71,7 @@
                                :inputs inputs
                                :model model
                                :preset preset}}]
-    (-> (client/post (str api-endpoint "/classify") options )
+    (-> (client/post (str api-endpoint "/classify") options)
        :body)))
 
 (defn summarize [& {:keys [text length format model extractiveness temperature additional_command]
@@ -95,7 +96,7 @@
                                :model model
                                :temperature temperature
                                :additional_command additional_command}}]
-    (-> (client/post (str api-endpoint "/summarize") options )
+    (-> (client/post (str api-endpoint "/summarize") options)
        :body)))
 
 (defn generate [& {:keys [max_tokens num_generations truncate stream model p k presence_penalty frequency_penalty temperature prompt preset end_sequences stop_sequences return_likelihoods logit_bias]
@@ -119,8 +120,9 @@
          (<= 0.0 temperature 5.0)
          (<= 0 k 500)
          (<= 0 p 0.99)
-         (<= 0.0 presence_penalty 1.0)]}
-  (let [options {:as :auto
+         (<= 0.0 presence_penalty 1.0)
+         (< 1 max_tokens 4096)]}
+  (let [options {:as (if stream :stream :auto)
                  :content-type :json                        
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
@@ -150,5 +152,35 @@
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :form-params {:texts texts}}]
-    (-> (client/post (str api-endpoint "/detect-language") options )
+    (-> (client/post (str api-endpoint "/detect-language") options)
        :body)))
+
+(defn chat [& {:keys [message conversation_id model return_chatlog return_prompt return_preamble chat_history preamble_override temperature max_tokens stream user_name p k logit_bias]
+               :or {stream false
+                    return_chatlog false
+                    return_prompt false
+                    temperature 0.8}}]
+  {:pre [(some? message) (<= 0.0 temperature 5.0) (boolean? stream)]}
+  (let [options {:as (if stream :stream :auto)
+                 :content-type :json
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
+                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :form-params {:message message
+                               :conversation_id conversation_id
+                               :model model
+                               :return_chatlog return_chatlog
+                               :return_prompt return_prompt
+                               :return_preamble return_preamble
+                               :chat_history chat_history
+                               :preamble_override preamble_override
+                               :temperature temperature
+                               :max_tokens max_tokens
+                               :stream stream
+                               :user_name user_name
+                               :p p
+                               :k k
+                               :logit_bias logit_bias}}]
+    (-> (client/post (str api-endpoint "/chat") options)
+       :body)))
+
+

@@ -1,0 +1,176 @@
+* Unofficial Cohere Clojure SDK
+
+** Motivation
+
+Cohere's developer-friendly product exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is good at handling REST APIs, so all is good except it isn't. Indeed, not all features are available via the REST API. For tasks like finetuning custom models, Cohere refers users to their SDKs. Hence the current Clojure port. 
+
+** Design philosophy
+
+The Principle of Least Surprise. As a matter of fact, you can consult the [[official documentation][official API documentation]] and it would translate one to one.
+All function calls take keyword arguments, resulting in the following syntax:
+
+#+begin_src clojure
+(generate :prompt "Explain to me how LLMs work" :temperature 1.5)
+#+end_src
+
+Which [[https://clojure.org/news/2021/03/18/apis-serving-people-and-programs][starting]] from Clojure 1.11 is equivalent to:
+
+#+begin_src clojure
+(generate {:prompt "Explain to me how LLMs work" :temperature 1.5})
+#+end_src
+
+Arguments are the same as the official SDK, but keywordized, eg ~num_generations~ becomes ~:num_generations~.  
+
+** Endpoints
+
++ generate
++ embed
++ classify
++ tokenize
++ detokenize
++ detect-language
++ summarize
++ rerank
++ chat
+
+TODO:
++ dataset  
+  
+** Learning by Examples
+
+** Generate
+
+(def openai "Suggest three names for an animal that is a superhero.
+
+Animal: Cat
+Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
+Animal: Dog
+Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
+Animal: Horse
+Names:")
+
+(def french "Translate the following sentence into French: Hi, how are you?")
+(def hebrew "Translate the following sentence into Hebrew: Hi, how are you?")
+(def spanish "Translate the following sentence into Spanish: Hi, how are you?")
+(def clojure "Write a function in Clojure that produces the Fibonacci sequence.")
+
+(def cohere "Please explain to me how LLMs work")
+(defn no-framework [product] (str "Generate a social ad copy for the product: " product "."))
+(defn aida-framework [product] (str "Generate an ad copy for the product: " product ".
+
+The copy consists of four parts, following the AIDA Framework.
+1 - Attention
+2 - Interest
+3 - Desire
+4 - Action
+
+The copy for each part is clear and concise."))
+
+
+** Classify
+
+#+begin_quote
+LLMs have been pre-trained with a vast amount of training data, allowing them to capture how words are being used and how their meaning changes depending on the context. A very common application of this is text classification.
+#+end_quote
+
+Let's begin with some examples.
+
+#+begin_src clojure
+(def examples [{:text "I'm so proud of you" :label "positive"}
+               {:text "What a great time to be aliveI'm so proud of you" :label "positive"}
+               {:text "That's awesome work" :label "positive"}
+               {:text "The service was amazing" :label "positive"}
+               {:text "I love my family" :label "positive"}
+               {:text "I hate this place" :label "negative"}
+               {:text "The most ridiculous thing I've ever heard" :label "negative"}
+               {:text "They don't care about me" :label "negative"}
+               {:text "I am really frustrated" :label "negative"}
+               {:text "They don't care about me" :label "negative"}
+               {:text "This is so unfair" :label "negative"}
+               {:text "This made me think" :label "neutral"}
+               {:text "The good old days" :label "neutral"}
+               {:text "What's the difference" :label "neutral"}
+               {:text "You can't ignore this" :label "neutral"}
+               {:text "That's how I see" :label "neutral"}]
+#+end_src
+
+
+
+
+            Example("", "positive"), 
+            Example("", "negative"), 
+            Example("", "negative"), 
+            Example("", "negative"), 
+            Example("", "negative"), 
+            Example("", "negative"),
+            Example("This made me think", "neutral"), 
+            Example("", "neutral"), 
+            Example("What's the difference", "neutral"), 
+            Example("You can't ignore this", "neutral"), 
+            Example("That's how I see it", "neutral")  
+(def foo ["Confirm your email address"
+          "hey i need u to send some $"])
+(def bar [{:text "Dermatologists don't like her!" :label "spam"}
+          {:text "Hello, open to this?" :label "spam"}
+          {:text "I need help please wire me $1000 right now" :label "spam"}
+          {:text  "Nice to know you ;)" :label "spam"}
+          {:text "Please help me?" :label "spam"}
+          {:text "Your parcel will be delivered today" :label "not spam"} 
+          {:text "Review changes to our Terms and Conditions" :label "not spam"}
+          {:text "Weekly sync notes" :label "not spam"}
+          {:text  "Re: Follow up from today’s meeting" :label "not spam"}
+          {:text  "Pre-read for tomorrow" :label "not spam"}])
+
+
+(def trec-thousand #(let [data (:body (client/get "https://cogcomp.seas.upenn.edu/Data/QA/QC/train_2000.label"))
+                          lines (str/split data #"\n")]
+                      (for [line lines
+                            :let [s (str/split line #" ")
+                                  label (first s)]
+                            :when (not (some #{label} ["ENTY:religion" "NUM:temp" "NUM:weight"]))]
+                        {:text (str/join " " (rest s))
+                         :label  label})))
+
+
+
+** Finetune
+
+(defn csv->jsonl [file]
+  (let [lines (str/split-lines (slurp file))]
+    (doseq [line lines
+          :let [els (str/split line #"\t")]]
+      (spit "/tmp/eval.jsonl" (str (json/generate-string {:prompt (first els) :completion (last els)}) "\n") :append true))))
+
+(defn prepare-dataset []
+  (let [train-dataset-url "https://raw.githubusercontent.com/cohere-ai/notebooks/main/notebooks/data/content_rephrasing_train.jsonl"]
+    (spit "/tmp/train.jsonl" (:body (client/get train-dataset-url)))
+    (dataset/jsonl-dataset :train-file "/tmp/train.jsonl" :eval-file "/tmp/eval.jsonl")))
+
+(defn jsonl->json [url]
+  (let [jsonl (str/split-lines (:body (client/get url)))]
+    (for [line jsonl]
+      (json/parse-string line true))))
+
+ *** Chat
+
+ Streaming responses
+ 
+ #+begin_src clojure
+ (with-open [stream (chat :message "Hey! How are you doing today?" :stream true)]
+   (let [lines (json/parsed-seq (io/reader stream) true)]
+     (doseq [l lines]
+       (print (:text l)))))
+ #+end_src
+
+ #+begin_src clojure
+ (with-open [stream (generate :prompt "Please tell me how we got here." :stream true :max_tokens 1200)]
+   (let [lines (json/parsed-seq (io/reader stream) true)]
+     (doseq [l lines]
+       (print (:text l) ))))
+ #+end_src
+#+begin_src clojure
+(with-open [stream (chat :message "Hey! How are you doing today?" :stream true)]
+  (let [lines (clojure.data.json/read (io/reader stream) true)]
+    (doseq [l lines]
+      (print (:text  l)))))
+ #+end_src
