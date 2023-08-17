@@ -38,24 +38,40 @@ TODO:
   
 ** Learning by Examples
 
-** Generate
+*** Generate
 
+#+begin_quote
+This endpoint generates realistic text conditioned on a given input.
+#+end_quote
+
+OpenAI example.
+#+begin_src clojure
 (def openai "Suggest three names for an animal that is a superhero.
-
 Animal: Cat
 Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
 Animal: Dog
 Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
 Animal: Horse
 Names:")
+#+end_src
 
-(def french "Translate the following sentence into French: Hi, how are you?")
-(def hebrew "Translate the following sentence into Hebrew: Hi, how are you?")
-(def spanish "Translate the following sentence into Spanish: Hi, how are you?")
-(def clojure "Write a function in Clojure that produces the Fibonacci sequence.")
+#+begin_src clojure
+(generate :prompt openai)
+#+end_src
 
-(def cohere "Please explain to me how LLMs work")
-(defn no-framework [product] (str "Generate a social ad copy for the product: " product "."))
+The output can be also be streamed.
+
+#+begin_src clojure
+(with-open [stream (generate :prompt "Please tell me how we got here." :stream true :max_tokens 1200)]
+  (let [lines (json/parsed-seq (io/reader stream) true)]
+    (doseq [l lines]
+      (print (:text l)))))
+ #+end_src
+
+ Generating a social ad copy for a product.
+
+ #+begin_src clojure
+(defn product [product] (str "Generate a social ad copy for the product: " product "."))
 (defn aida-framework [product] (str "Generate an ad copy for the product: " product ".
 
 The copy consists of four parts, following the AIDA Framework.
@@ -65,9 +81,31 @@ The copy consists of four parts, following the AIDA Framework.
 4 - Action
 
 The copy for each part is clear and concise."))
+ #+end_src
+
+ #+begin_src clojure
+(generate :prompt (product "Wireless Earbuds"))
+ #+end_src
+
+ #+begin_src clojure
+(generate :prompt (aida-framework "Wireless Earbuds") :max_tokens 1200)
+ #+end_src
+
+Translations
+
+(def french "Translate the following sentence into French: Hi, how are you?")
+(def hebrew "Translate the following sentence into Hebrew: Hi, how are you?")
+(def spanish "Translate the following sentence into Spanish: Hi, how are you?")
+
+Generating code
+
+(def clojure "Write a function in Clojure that produces the Fibonacci sequence.")
 
 
-** Classify
+(def cohere "Please explain to me how LLMs work")
+
+
+*** Classify
 
 #+begin_quote
 LLMs have been pre-trained with a vast amount of training data, allowing them to capture how words are being used and how their meaning changes depending on the context. A very common application of this is text classification.
@@ -157,7 +195,7 @@ Ready to go!
 
 
 
-** Finetune
+*** Finetune
 
 (defn csv->jsonl [file]
   (let [lines (str/split-lines (slurp file))]
@@ -175,7 +213,7 @@ Ready to go!
     (for [line jsonl]
       (json/parse-string line true))))
 
- *** Chat
+*** Chat
 
  Streaming responses
  
@@ -186,12 +224,7 @@ Ready to go!
        (print (:text l)))))
  #+end_src
 
- #+begin_src clojure
- (with-open [stream (generate :prompt "Please tell me how we got here." :stream true :max_tokens 1200)]
-   (let [lines (json/parsed-seq (io/reader stream) true)]
-     (doseq [l lines]
-       (print (:text l) ))))
- #+end_src
+
 #+begin_src clojure
 (with-open [stream (chat :message "Hey! How are you doing today?" :stream true)]
   (let [lines (clojure.data.json/read (io/reader stream) true)]
