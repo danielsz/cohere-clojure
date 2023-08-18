@@ -120,7 +120,7 @@ The copy for each part is clear and concise."))
  | #'cohere.client/product        |
  | #'cohere.client/aida-framework |
 
- #+begin_src clojure :session current :results value org
+ #+begin_src clojure :session current :exports both :results value org
 (generate :prompt (product "Wireless Earbuds"))
  #+end_src
 
@@ -129,7 +129,7 @@ The copy for each part is clear and concise."))
  {:id "c85b68a6-eba7-471a-9a4a-ac413241dab6", :generations [{:id "3353ed15-058c-4b04-9562-207355351d5e", :text " Introducing our new wireless earbuds - the perfect accessory for all your on-the-go needs! Enjoy"}], :prompt "Generate a social ad copy for the product: Wireless Earbuds.", :meta {:api_version {:version "2022-12-06"}}}
  #+end_src
 
- #+begin_src clojure :session current :results value org
+ #+begin_src clojure :session current :exports both :results value org
 (generate :prompt (aida-framework "Wireless Earbuds") :max_tokens 1200)
  #+end_src
 
