@@ -1,14 +1,20 @@
 * Unofficial Cohere Clojure SDK
 
+#+begin_quote
+Cohere helps businesses explore, generate, search for, and act upon information... 
+#+end_quote
+
+In other words, Cohere provides NLP services such as text generation, classification, embeddings (semantic search) and summarization.
+
 ** Motivation
 
-Cohere's developer-friendly product exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like finetuning custom models, Cohere refers users to their SDKs. Hence the current Clojure port.
+Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning), Cohere refers users to their SDKs. Hence the current Clojure port.
 
 Without making a statement on the merits of languages, we'll just remind the kind reader that with Clojure you get the functional paradigm, Lisp-style meta-programming and interactive development at the REPL.
 
 ** Design Philosophy
 
-The Principle of Least Surprise was the guiding light. This project doesn't require separate documentation than that of the [[official documentation][official API documentation]]. Cohere's API translates one to one with the Clojure functions. All function calls take keyword arguments, resulting in the following syntax:
+This project follows [[https://en.wikipedia.org/wiki/Principle_of_least_astonishment][The Principle of Least Surprise]]. It doesn't require separate documentation than that of the [[official documentation][official API documentation]]. Cohere's API translates one to one with the provided Clojure functions. All function calls take keyword arguments, resulting in the following syntax:
 
 #+begin_src clojure
 (generate :prompt "Explain to me how LLMs work" :temperature 1.5)
@@ -34,6 +40,7 @@ Arguments are the same as in Cohere's API, but keywordized, for example, ~num_ge
 + detect-language
 + summarize
 + rerank
++ finetune
 + chat
 
 TODO:
@@ -43,7 +50,7 @@ TODO:
 
 What follows is a distillation of Cohere's platform from the perspective of the Clojure SDK. If you feel you're missing context or background, please refer to Cohere's tutorials. In particular, Cohere's [[https://docs.cohere.com/docs/llmu][LLM University]] curriculum is very effective at bringing developers up to speed with the fundamentals of NLP and LLMs.
 
-Reading through those examples is fine, but running them at a REPL is better.
+Reading through those examples is fine, but running them at a REPL is better. Emacs users, please note that you can run the source blocks directly within the README since it is written in literate babel org-mode.
 
 *** Generate
 
