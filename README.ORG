@@ -2,12 +2,13 @@
 
 ** Motivation
 
-Cohere's developer-friendly product exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is good at handling REST APIs, so all is good except it isn't. Indeed, not all features are available via the REST API. For tasks like finetuning custom models, Cohere refers users to their SDKs. Hence the current Clojure port. 
+Cohere's developer-friendly product exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like finetuning custom models, Cohere refers users to their SDKs. Hence the current Clojure port.
 
-** Design philosophy
+Without making a statement on the merits of languages, we'll just remind the kind reader that with Clojure you get the functional paradigm, Lisp-style meta-programming and interactive development at the REPL.
 
-The Principle of Least Surprise. As a matter of fact, you can consult the [[official documentation][official API documentation]] and it would translate one to one.
-All function calls take keyword arguments, resulting in the following syntax:
+** Design Philosophy
+
+The Principle of Least Surprise was the guiding light. This project doesn't require separate documentation than that of the [[official documentation][official API documentation]]. Cohere's API translates one to one with the Clojure functions. All function calls take keyword arguments, resulting in the following syntax:
 
 #+begin_src clojure
 (generate :prompt "Explain to me how LLMs work" :temperature 1.5)
@@ -19,9 +20,11 @@ Which [[https://clojure.org/news/2021/03/18/apis-serving-people-and-programs][st
 (generate {:prompt "Explain to me how LLMs work" :temperature 1.5})
 #+end_src
 
-Arguments are the same as the official SDK, but keywordized, eg ~num_generations~ becomes ~:num_generations~.  
+In other words, you can pass a map, or individual keyword/value pairs.
 
-** Endpoints
+Arguments are the same as in Cohere's API, but keywordized, for example, ~num_generations~ becomes ~:num_generations~.
+
+** The Endpoints
 
 + generate
 + embed
@@ -36,41 +39,71 @@ Arguments are the same as the official SDK, but keywordized, eg ~num_generations
 TODO:
 + dataset  
   
-** Learning by Examples
+** Learning through Examples
+
+What follows is a distillation of Cohere's platform from the perspective of the Clojure SDK. If you feel you're missing context or background, please refer to Cohere's tutorials. In particular, Cohere's [[https://docs.cohere.com/docs/llmu][LLM University]] curriculum is very effective at bringing developers up to speed with the fundamentals of NLP and LLMs.
+
+Reading through those examples is fine, but running them at a REPL is better.
 
 *** Generate
+
+#+begin_src clojure :session current
+(require '[cohere.client :refer [generate]])
+#+end_src
+
 
 #+begin_quote
 This endpoint generates realistic text conditioned on a given input.
 #+end_quote
 
-OpenAI example.
-#+begin_src clojure
-(def openai "Suggest three names for an animal that is a superhero.
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: Horse
-Names:")
+OpenAI is the name that burst into public consciousness overnight, and the desire to compare the offering of contenders is only natural. In OpenAI's [[https://platform.openai.com/docs/quickstart][quickstart]], they state that:
+
+#+begin_quote
+OpenAI has trained cutting-edge language models that are very good at understanding and generating text. 
+#+end_quote
+
+The example chosen to demonstrate that capability is shown below.
+
+#+begin_src clojure :session current 
+(def openai-prompt (clojure.string/join "\n" ["Suggest three names for an animal that is a superhero."
+                                             "Animal: Cat"
+                                             "Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline"
+                                             "Animal: Dog"
+                                             "Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot"
+                                             "Animal: Horse"
+                                             "Names:"]))
 #+end_src
 
-#+begin_src clojure
-(generate :prompt openai)
+#+RESULTS:
+: #'cohere.client/openai-prompt
+
+Let's try this on Cohere's platform. 
+
+#+begin_src clojure :exports both :session current :results value org 
+(generate :prompt openai-prompt)
 #+end_src
 
-The output can be also be streamed.
+#+RESULTS:
+#+begin_src org
+{:id "20161769-4efe-41cc-b8a5-3e11b959760b", :generations [{:id "9f8ff197-c397-4e25-9ed9-b88853affbd3", :text " Stallion Force, The Equine Avengers, Super Horse"}], :prompt "Suggest three names for an animal that is a superhero.\nAnimal: Cat\nNames: Captain Sharpclaw, Agent Fluffball, The Incredible Feline\nAnimal: Dog\nNames: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot\nAnimal: Horse\nNames:", :meta {:api_version {:version "2022-12-06"}}}
+#+end_src
 
-#+begin_src clojure
+Most Cohere's endpoints are of the regular HTPP request/reponse type, but the ~generate~ endpoint can send its output over streaming HTTP. A JSON stream of events will be sent where the last one will contain the complete response, and a field called ~is_finished~ set to true. 
+
+#+begin_src clojure :exports both :session current :results value org
 (with-open [stream (generate :prompt "Please tell me how we got here." :stream true :max_tokens 1200)]
-  (let [lines (json/parsed-seq (io/reader stream) true)]
-    (doseq [l lines]
-      (print (:text l)))))
+                 (doall (json/parsed-seq (io/reader stream) true)))
  #+end_src
 
- Generating a social ad copy for a product.
+ #+RESULTS:
+ #+begin_src org
+ ({:text " We", :is_finished false} {:text " are", :is_finished false} {:text " here", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text " moment", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " result", :is_finished false} {:text " of", :is_finished false} {:text " the", :is_finished false} {:text " past", :is_finished false} {:text ".", :is_finished false} {:text " The", :is_finished false} {:text " past", :is_finished false} {:text " is", :is_finished false} {:text " a", :is_finished false} {:text " series", :is_finished false} {:text " of", :is_finished false} {:text " events", :is_finished false} {:text " that", :is_finished false} {:text " have", :is_finished false} {:text " led", :is_finished false} {:text " up", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text ".", :is_finished false} {:text " These", :is_finished false} {:text " events", :is_finished false} {:text " can", :is_finished false} {:text " be", :is_finished false} {:text " traced", :is_finished false} {:text " back", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " beginning", :is_finished false} {:text " of", :is_finished false} {:text " time", :is_finished false} {:text ",", :is_finished false} {:text " when", :is_finished false} {:text " the", :is_finished false} {:text " universe", :is_finished false} {:text " was", :is_finished false} {:text " created", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "The", :is_finished false} {:text " events", :is_finished false} {:text " that", :is_finished false} {:text " led", :is_finished false} {:text " up", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text " moment", :is_finished false} {:text " can", :is_finished false} {:text " be", :is_finished false} {:text " categorized", :is_finished false} {:text " into", :is_finished false} {:text " several", :is_finished false} {:text " stages", :is_finished false} {:text ".", :is_finished false} {:text " The", :is_finished false} {:text " first", :is_finished false} {:text " stage", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " creation", :is_finished false} {:text " of", :is_finished false} {:text " the", :is_finished false} {:text " universe", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 13", :is_finished false} {:text ".", :is_finished false} {:text "7", :is_finished false} {:text " billion", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text " This", :is_finished false} {:text " was", :is_finished false} {:text " followed", :is_finished false} {:text " by", :is_finished false} {:text " the", :is_finished false} {:text " formation", :is_finished false} {:text " of", :is_finished false} {:text " galaxies", :is_finished false} {:text " and", :is_finished false} {:text " stars", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 4", :is_finished false} {:text ".", :is_finished false} {:text "6", :is_finished false} {:text " billion", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "The", :is_finished false} {:text " next", :is_finished false} {:text " stage", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " development", :is_finished false} {:text " of", :is_finished false} {:text " life", :is_finished false} {:text " on", :is_finished false} {:text " Earth", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 3", :is_finished false} {:text ".", :is_finished false} {:text "8", :is_finished false} {:text " billion", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text " This", :is_finished false} {:text " was", :is_finished false} {:text " followed", :is_finished false} {:text " by", :is_finished false} {:text " the", :is_finished false} {:text " evolution", :is_finished false} {:text " of", :is_finished false} {:text " humans", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 2", :is_finished false} {:text ".", :is_finished false} {:text "4", :is_finished false} {:text " million", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "The", :is_finished false} {:text " final", :is_finished false} {:text " stage", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " development", :is_finished false} {:text " of", :is_finished false} {:text " technology", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " has", :is_finished false} {:text " occurred", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " past", :is_finished false} {:text " few", :is_finished false} {:text " thousand", :is_finished false} {:text " years", :is_finished false} {:text ".", :is_finished false} {:text " This", :is_finished false} {:text " has", :is_finished false} {:text " led", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " creation", :is_finished false} {:text " of", :is_finished false} {:text " machines", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " have", :is_finished false} {:text " made", :is_finished false} {:text " it", :is_finished false} {:text " possible", :is_finished false} {:text " for", :is_finished false} {:text " humans", :is_finished false} {:text " to", :is_finished false} {:text " travel", :is_finished false} {:text " to", :is_finished false} {:text " other", :is_finished false} {:text " planets", :is_finished false} {:text " and", :is_finished false} {:text " explore", :is_finished false} {:text " space", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "We", :is_finished false} {:text " are", :is_finished false} {:text " here", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text " moment", :is_finished false} {:text " because", :is_finished false} {:text " of", :is_finished false} {:text " the", :is_finished false} {:text " events", :is_finished false} {:text " that", :is_finished false} {:text " have", :is_finished false} {:text " occurred", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " past", :is_finished false} {:text ".", :is_finished false} {:text " These", :is_finished false} {:text " events", :is_finished false} {:text " have", :is_finished false} {:text " shaped", :is_finished false} {:text " the", :is_finished false} {:text " world", :is_finished false} {:text " and", :is_finished false} {:text " the", :is_finished false} {:text " lives", :is_finished false} {:text " of", :is_finished false} {:text " those", :is_finished false} {:text " who", :is_finished false} {:text " live", :is_finished false} {:text " in", :is_finished false} {:text " it", :is_finished false} {:text ".", :is_finished false} {:is_finished true, :finish_reason "COMPLETE", :response {:id "d903ed2d-c49a-497b-9165-96f2ea260113", :generations [{:id "40974223-228b-4d9f-87f6-696f77f44161", :text " We are here in the present moment, which is the result of the past. The past is a series of events that have led up to the present. These events can be traced back to the beginning of time, when the universe was created.\n\nThe events that led up to the present moment can be categorized into several stages. The first stage is the creation of the universe, which occurred approximately 13.7 billion years ago. This was followed by the formation of galaxies and stars, which occurred approximately 4.6 billion years ago.\n\nThe next stage is the development of life on Earth, which occurred approximately 3.8 billion years ago. This was followed by the evolution of humans, which occurred approximately 2.4 million years ago.\n\nThe final stage is the development of technology, which has occurred in the past few thousand years. This has led to the creation of machines, which have made it possible for humans to travel to other planets and explore space.\n\nWe are here in the present moment because of the events that have occurred in the past. These events have shaped the world and the lives of those who live in it.", :finish_reason "COMPLETE"}], :prompt "Please tell me how we got here."}})
+ #+end_src
 
- #+begin_src clojure
+If there is one application that generative AI is good for, then that must be for generating copy. Ads, products, etc. Here are two types of prompts.
+One free-form, one that prompts for the [[https://en.wikipedia.org/wiki/AIDA_(marketing)][AIDA]] hierarchical model.
+
+ #+begin_src clojure :session current
 (defn product [product] (str "Generate a social ad copy for the product: " product "."))
 (defn aida-framework [product] (str "Generate an ad copy for the product: " product ".
 
@@ -83,12 +116,26 @@ The copy consists of four parts, following the AIDA Framework.
 The copy for each part is clear and concise."))
  #+end_src
 
- #+begin_src clojure
+ #+RESULTS:
+ | #'cohere.client/product        |
+ | #'cohere.client/aida-framework |
+
+ #+begin_src clojure :session current :results value org
 (generate :prompt (product "Wireless Earbuds"))
  #+end_src
 
- #+begin_src clojure
+ #+RESULTS:
+ #+begin_src org
+ {:id "c85b68a6-eba7-471a-9a4a-ac413241dab6", :generations [{:id "3353ed15-058c-4b04-9562-207355351d5e", :text " Introducing our new wireless earbuds - the perfect accessory for all your on-the-go needs! Enjoy"}], :prompt "Generate a social ad copy for the product: Wireless Earbuds.", :meta {:api_version {:version "2022-12-06"}}}
+ #+end_src
+
+ #+begin_src clojure :session current :results value org
 (generate :prompt (aida-framework "Wireless Earbuds") :max_tokens 1200)
+ #+end_src
+
+ #+RESULTS:
+ #+begin_src org
+ {:id "9fcf3b6e-7ff1-49cb-a515-4f78c02da400", :generations [{:id "7d9acdaa-213f-4659-97e8-d2911a0770b2", :text " ... \"Wireless Earbuds - The Perfect Companion for Your Daily Commute\"\n\n1. Attention:\n- \"Don't struggle with tangled cords and poor sound quality on your daily commute. Upgrade to wireless earbuds and enjoy crystal clear sound and comfortable, snug fit.\"\n\n2. Interest:\n- \"With wireless earbuds, you can take calls, listen to music, and podcasts without any distractions. The sleek design and comfortable fit make it the perfect companion for your daily commute.\"\n\n3. Desire:\n- \"Enjoy the freedom of wireless earbuds and make your daily commute more enjoyable. The easy-to-use design and crystal clear sound make it the perfect choice for anyone looking for a stylish and functional accessory.\"\n\n4. Action:\n- \"Try wireless earbuds today and experience the convenience and comfort for yourself. Order now and enjoy free shipping and easy returns.\""}], :prompt "Generate an ad copy for the product: Wireless Earbuds.\n\nThe copy consists of four parts, following the AIDA Framework.\n1 - Attention\n2 - Interest\n3 - Desire\n4 - Action\n\nThe copy for each part is clear and concise.", :meta {:api_version {:version "2022-12-06"}}}
  #+end_src
 
 Translations
@@ -103,7 +150,6 @@ Generating code
 
 
 (def cohere "Please explain to me how LLMs work")
-
 
 *** Classify
 
