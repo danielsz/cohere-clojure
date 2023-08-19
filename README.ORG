@@ -4,11 +4,11 @@
 Cohere helps businesses explore, generate, search for, and act upon information... 
 #+end_quote
 
-In other words, Cohere provides NLP services such as text generation, classification, embeddings (semantic search) and summarization.
+In other words, Cohere provides NLP services such as text generation, classification, clustering, semantic search, automatic summarization, etc.
 
 ** Motivation
 
-Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning), Cohere refers users to their SDKs. Hence the current Clojure port.
+Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning) or clustering jobs Cohere refers users to their SDKs. Hence the current Clojure port.
 
 Without making a statement on the merits of languages, we'll just remind the kind reader that with Clojure you get the functional paradigm, Lisp-style meta-programming and interactive development at the REPL.
 
@@ -248,7 +248,13 @@ Ready to go!
 
 
 
-*** Finetune
+*** Custom models (fine-tuning)
+
+#+begin_quote
+Cohere's platform gives you the ability to train a Large Language Model (LLM) and customize it with a dataset to excel at a specific task. Custom models can lead to some of the best-performing NLP models for a wide number of tasks.
+#+end_quote
+
+
 
 (defn csv->jsonl [file]
   (let [lines (str/split-lines (slurp file))]
