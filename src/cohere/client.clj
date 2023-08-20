@@ -100,7 +100,7 @@
        :body)))
 
 (defn generate [& {:keys [max_tokens num_generations truncate stream model p k presence_penalty frequency_penalty temperature prompt preset end_sequences stop_sequences return_likelihoods logit_bias]
-                   :or {max_tokens 20
+                   :or {max_tokens 300
                         num_generations 1
                         truncate "END"
                         model "command"
@@ -143,6 +143,32 @@
                                :return_likelihoods return_likelihoods
                                :logit_bias logit_bias}}]
     (-> (client/post (str api-endpoint "/generate") options)
+       :body)))
+
+
+(defn generate-feedback [& {:keys [request_id good_response model desired_response flagged_response flagged_reason prompt annotator_id] :as args}]
+  (let [options {:as :auto
+                 :content-type :json
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
+                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :form-params {:request_id request_id
+                               :good_response good_response
+                               :desired_response desired_response
+                               :flagged_response flagged_response
+                               :flagged_reason flagged_reason
+                               :prompt prompt
+                               :model model
+                               :annotator_id annotator_id}}]
+    (-> (client/post (str api-endpoint "/generate/feedback") options)
+       :body)))
+
+(defn generate-feedback-preference [& {:keys [ratings model prompt annotator_id] :as args}]
+  (let [options {:as :auto
+                 :content-type :json
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
+                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :form-params args}]
+    (-> (client/post (str api-endpoint "/generate/feedback/preference") options)
        :body)))
 
 (defn detect-language [& {:keys [texts]}]

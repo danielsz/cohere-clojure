@@ -8,7 +8,7 @@ In other words, Cohere provides NLP services such as text generation, classifica
 
 ** Motivation
 
-Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning) or clustering jobs Cohere refers users to their SDKs. Hence the current Clojure port.
+Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning) or clustering jobs Cohere refers users to their SDKs. Hence the current Clojure port. This effort was undertaken by me, and in no way commissioned by Cohere. It is released as Open Source with the same license as Cohere's official SDK, under the MIT license.
 
 Without making a statement on the merits of languages, we'll just remind the kind reader that with Clojure you get the functional paradigm, Lisp-style meta-programming and interactive development at the REPL.
 
@@ -29,6 +29,15 @@ Which [[https://clojure.org/news/2021/03/18/apis-serving-people-and-programs][st
 In other words, you can pass a map, or individual keyword/value pairs.
 
 Arguments are the same as in Cohere's API, but keywordized, for example, ~num_generations~ becomes ~:num_generations~.
+
+** Configuration
+
+The client will use the user's Cohere API key as well as the desired API version via Java Properties. How they get there is up to the user.
+
+#+begin_src clojure
+(System/getProperty "cohere.api.key")
+(System/getProperty "cohere.api.version")
+#+end_src
 
 ** The Endpoints
 
@@ -57,6 +66,8 @@ Reading through those examples is fine, but running them at a REPL is better. Em
 #+begin_src clojure :session current
 (require '[cohere.client :refer [generate]])
 #+end_src
+
+#+RESULTS:
 
 
 #+begin_quote
@@ -107,20 +118,10 @@ Most Cohere's endpoints are of the regular HTPP request/reponse type, but the ~g
  ({:text " We", :is_finished false} {:text " are", :is_finished false} {:text " here", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text " moment", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " result", :is_finished false} {:text " of", :is_finished false} {:text " the", :is_finished false} {:text " past", :is_finished false} {:text ".", :is_finished false} {:text " The", :is_finished false} {:text " past", :is_finished false} {:text " is", :is_finished false} {:text " a", :is_finished false} {:text " series", :is_finished false} {:text " of", :is_finished false} {:text " events", :is_finished false} {:text " that", :is_finished false} {:text " have", :is_finished false} {:text " led", :is_finished false} {:text " up", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text ".", :is_finished false} {:text " These", :is_finished false} {:text " events", :is_finished false} {:text " can", :is_finished false} {:text " be", :is_finished false} {:text " traced", :is_finished false} {:text " back", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " beginning", :is_finished false} {:text " of", :is_finished false} {:text " time", :is_finished false} {:text ",", :is_finished false} {:text " when", :is_finished false} {:text " the", :is_finished false} {:text " universe", :is_finished false} {:text " was", :is_finished false} {:text " created", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "The", :is_finished false} {:text " events", :is_finished false} {:text " that", :is_finished false} {:text " led", :is_finished false} {:text " up", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text " moment", :is_finished false} {:text " can", :is_finished false} {:text " be", :is_finished false} {:text " categorized", :is_finished false} {:text " into", :is_finished false} {:text " several", :is_finished false} {:text " stages", :is_finished false} {:text ".", :is_finished false} {:text " The", :is_finished false} {:text " first", :is_finished false} {:text " stage", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " creation", :is_finished false} {:text " of", :is_finished false} {:text " the", :is_finished false} {:text " universe", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 13", :is_finished false} {:text ".", :is_finished false} {:text "7", :is_finished false} {:text " billion", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text " This", :is_finished false} {:text " was", :is_finished false} {:text " followed", :is_finished false} {:text " by", :is_finished false} {:text " the", :is_finished false} {:text " formation", :is_finished false} {:text " of", :is_finished false} {:text " galaxies", :is_finished false} {:text " and", :is_finished false} {:text " stars", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 4", :is_finished false} {:text ".", :is_finished false} {:text "6", :is_finished false} {:text " billion", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "The", :is_finished false} {:text " next", :is_finished false} {:text " stage", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " development", :is_finished false} {:text " of", :is_finished false} {:text " life", :is_finished false} {:text " on", :is_finished false} {:text " Earth", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 3", :is_finished false} {:text ".", :is_finished false} {:text "8", :is_finished false} {:text " billion", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text " This", :is_finished false} {:text " was", :is_finished false} {:text " followed", :is_finished false} {:text " by", :is_finished false} {:text " the", :is_finished false} {:text " evolution", :is_finished false} {:text " of", :is_finished false} {:text " humans", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " occurred", :is_finished false} {:text " approximately", :is_finished false} {:text " 2", :is_finished false} {:text ".", :is_finished false} {:text "4", :is_finished false} {:text " million", :is_finished false} {:text " years", :is_finished false} {:text " ago", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "The", :is_finished false} {:text " final", :is_finished false} {:text " stage", :is_finished false} {:text " is", :is_finished false} {:text " the", :is_finished false} {:text " development", :is_finished false} {:text " of", :is_finished false} {:text " technology", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " has", :is_finished false} {:text " occurred", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " past", :is_finished false} {:text " few", :is_finished false} {:text " thousand", :is_finished false} {:text " years", :is_finished false} {:text ".", :is_finished false} {:text " This", :is_finished false} {:text " has", :is_finished false} {:text " led", :is_finished false} {:text " to", :is_finished false} {:text " the", :is_finished false} {:text " creation", :is_finished false} {:text " of", :is_finished false} {:text " machines", :is_finished false} {:text ",", :is_finished false} {:text " which", :is_finished false} {:text " have", :is_finished false} {:text " made", :is_finished false} {:text " it", :is_finished false} {:text " possible", :is_finished false} {:text " for", :is_finished false} {:text " humans", :is_finished false} {:text " to", :is_finished false} {:text " travel", :is_finished false} {:text " to", :is_finished false} {:text " other", :is_finished false} {:text " planets", :is_finished false} {:text " and", :is_finished false} {:text " explore", :is_finished false} {:text " space", :is_finished false} {:text ".", :is_finished false} {:text "\n", :is_finished false} {:text "\n", :is_finished false} {:text "We", :is_finished false} {:text " are", :is_finished false} {:text " here", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " present", :is_finished false} {:text " moment", :is_finished false} {:text " because", :is_finished false} {:text " of", :is_finished false} {:text " the", :is_finished false} {:text " events", :is_finished false} {:text " that", :is_finished false} {:text " have", :is_finished false} {:text " occurred", :is_finished false} {:text " in", :is_finished false} {:text " the", :is_finished false} {:text " past", :is_finished false} {:text ".", :is_finished false} {:text " These", :is_finished false} {:text " events", :is_finished false} {:text " have", :is_finished false} {:text " shaped", :is_finished false} {:text " the", :is_finished false} {:text " world", :is_finished false} {:text " and", :is_finished false} {:text " the", :is_finished false} {:text " lives", :is_finished false} {:text " of", :is_finished false} {:text " those", :is_finished false} {:text " who", :is_finished false} {:text " live", :is_finished false} {:text " in", :is_finished false} {:text " it", :is_finished false} {:text ".", :is_finished false} {:is_finished true, :finish_reason "COMPLETE", :response {:id "d903ed2d-c49a-497b-9165-96f2ea260113", :generations [{:id "40974223-228b-4d9f-87f6-696f77f44161", :text " We are here in the present moment, which is the result of the past. The past is a series of events that have led up to the present. These events can be traced back to the beginning of time, when the universe was created.\n\nThe events that led up to the present moment can be categorized into several stages. The first stage is the creation of the universe, which occurred approximately 13.7 billion years ago. This was followed by the formation of galaxies and stars, which occurred approximately 4.6 billion years ago.\n\nThe next stage is the development of life on Earth, which occurred approximately 3.8 billion years ago. This was followed by the evolution of humans, which occurred approximately 2.4 million years ago.\n\nThe final stage is the development of technology, which has occurred in the past few thousand years. This has led to the creation of machines, which have made it possible for humans to travel to other planets and explore space.\n\nWe are here in the present moment because of the events that have occurred in the past. These events have shaped the world and the lives of those who live in it.", :finish_reason "COMPLETE"}], :prompt "Please tell me how we got here."}})
  #+end_src
 
-If there is one application that generative AI is good for, then that must be for generating copy. Ads, products, etc. Here are two types of prompts.
-One free-form, one that prompts for the [[https://en.wikipedia.org/wiki/AIDA_(marketing)][AIDA]] hierarchical model.
+If there is one application where generative AI is showing promise, it's probably for generating copy. 
 
  #+begin_src clojure :session current
 (defn product [product] (str "Generate a social ad copy for the product: " product "."))
-(defn aida-framework [product] (str "Generate an ad copy for the product: " product ".
-
-The copy consists of four parts, following the AIDA Framework.
-1 - Attention
-2 - Interest
-3 - Desire
-4 - Action
-
-The copy for each part is clear and concise."))
  #+end_src
 
  #+RESULTS:
@@ -136,6 +137,20 @@ The copy for each part is clear and concise."))
  {:id "c85b68a6-eba7-471a-9a4a-ac413241dab6", :generations [{:id "3353ed15-058c-4b04-9562-207355351d5e", :text " Introducing our new wireless earbuds - the perfect accessory for all your on-the-go needs! Enjoy"}], :prompt "Generate a social ad copy for the product: Wireless Earbuds.", :meta {:api_version {:version "2022-12-06"}}}
  #+end_src
 
+Maybe what we had in mind was something else, maybe we wanted an ad copy that follows the [[https://en.wikipedia.org/wiki/AIDA_(marketing)][AIDA]] hierarchical model.
+
+#+begin_src clojure
+(defn aida-framework [product] (str "Generate an ad copy for the product: " product ".
+
+ The copy consists of four parts, following the AIDA Framework.
+ 1 - Attention
+ 2 - Interest
+ 3 - Desire
+ 4 - Action
+
+ The copy for each part is clear and concise."))
+#+end_src
+
  #+begin_src clojure :session current :exports both :results value org
 (generate :prompt (aida-framework "Wireless Earbuds") :max_tokens 1200)
  #+end_src
@@ -145,20 +160,13 @@ The copy for each part is clear and concise."))
  {:id "9fcf3b6e-7ff1-49cb-a515-4f78c02da400", :generations [{:id "7d9acdaa-213f-4659-97e8-d2911a0770b2", :text " ... \"Wireless Earbuds - The Perfect Companion for Your Daily Commute\"\n\n1. Attention:\n- \"Don't struggle with tangled cords and poor sound quality on your daily commute. Upgrade to wireless earbuds and enjoy crystal clear sound and comfortable, snug fit.\"\n\n2. Interest:\n- \"With wireless earbuds, you can take calls, listen to music, and podcasts without any distractions. The sleek design and comfortable fit make it the perfect companion for your daily commute.\"\n\n3. Desire:\n- \"Enjoy the freedom of wireless earbuds and make your daily commute more enjoyable. The easy-to-use design and crystal clear sound make it the perfect choice for anyone looking for a stylish and functional accessory.\"\n\n4. Action:\n- \"Try wireless earbuds today and experience the convenience and comfort for yourself. Order now and enjoy free shipping and easy returns.\""}], :prompt "Generate an ad copy for the product: Wireless Earbuds.\n\nThe copy consists of four parts, following the AIDA Framework.\n1 - Attention\n2 - Interest\n3 - Desire\n4 - Action\n\nThe copy for each part is clear and concise.", :meta {:api_version {:version "2022-12-06"}}}
  #+end_src
 
-Translations
-
-(def french "Translate the following sentence into French: Hi, how are you?")
-(def hebrew "Translate the following sentence into Hebrew: Hi, how are you?")
-(def spanish "Translate the following sentence into Spanish: Hi, how are you?")
-
-Generating code
-
-(def clojure "Write a function in Clojure that produces the Fibonacci sequence.")
-
-
-(def cohere "Please explain to me how LLMs work")
-
 *** Classify
+
+#+begin_src clojure :session current
+(require '[cohere.client :refer [classify]])
+#+end_src
+
+#+RESULTS:
 
 #+begin_quote
 LLMs have been pre-trained with a vast amount of training data, allowing them to capture how words are being used and how their meaning changes depending on the context. A very common application of this is text classification.
@@ -166,7 +174,7 @@ LLMs have been pre-trained with a vast amount of training data, allowing them to
 
 Let's begin with sentiment analysis.
 
-#+begin_src clojure
+#+begin_src clojure :session current
 (def examples [{:text "I'm so proud of you" :label "positive"}
                {:text "What a great time to be aliveI'm so proud of you" :label "positive"}
                {:text "That's awesome work" :label "positive"}
@@ -185,9 +193,12 @@ Let's begin with sentiment analysis.
                {:text "That's how I see it" :label "neutral"}])
 #+end_src
 
+#+RESULTS:
+: #'user/examples
+
 Let's now set up our inputs to classify.
 
-#+begin_src clojure
+#+begin_src clojure :session current
 (def inputs ["Hello, world! What a beautiful day",
              "It was a great time with great people",
              "Great place to work",
@@ -203,15 +214,23 @@ Let's now set up our inputs to classify.
              ])
 #+end_src
 
+#+RESULTS:
+: #'user/inputs
+
 Ready to go!
 
-#+begin_src clojure
+#+begin_src clojure :session current :exports both :results value org
 (classify :inputs inputs :examples examples)
+#+end_src
+
+#+RESULTS:
+#+begin_src org
+{:id "0b3d7a80-7d1f-4c0c-bf44-6c5930ee8310", :classifications [{:id "86710c33-becf-4f05-93b3-040175408036", :input "Hello, world! What a beautiful day", :prediction "positive", :confidence 0.67250913, :labels {:negative {:confidence 0.046673477}, :neutral {:confidence 0.2808174}, :positive {:confidence 0.67250913}}} {:id "2c66fa98-07d9-4ecc-8e3c-93ee54f5ab71", :input "It was a great time with great people", :prediction "positive", :confidence 0.98359793, :labels {:negative {:confidence 5.770475E-4}, :neutral {:confidence 0.015824998}, :positive {:confidence 0.98359793}}} {:id "cb9edbde-b96d-4ab3-8227-7596154d6177", :input "Great place to work", :prediction "positive", :confidence 0.8030995, :labels {:negative {:confidence 0.18620741}, :neutral {:confidence 0.010693076}, :positive {:confidence 0.8030995}}} {:id "ac653477-2fd0-425c-a4fa-058d844e7538", :input "That was a wonderful evening", :prediction "positive", :confidence 0.91828907, :labels {:negative {:confidence 0.0020052015}, :neutral {:confidence 0.07970571}, :positive {:confidence 0.91828907}}} {:id "cb0887b8-7257-4cd7-849f-b263dcd78dff", :input "Maybe this is why", :prediction "neutral", :confidence 0.72916573, :labels {:negative {:confidence 0.26635805}, :neutral {:confidence 0.72916573}, :positive {:confidence 0.0044762404}}} {:id "a32284d1-fdc8-412b-90d6-0323674f2582", :input "Let's start again", :prediction "neutral", :confidence 0.8327636, :labels {:negative {:confidence 0.14705248}, :neutral {:confidence 0.8327636}, :positive {:confidence 0.02018392}}} {:id "5b2f9505-99e2-4ef6-ba6a-cc62da879b71", :input "That's how I see it", :prediction "neutral", :confidence 0.999064, :labels {:negative {:confidence 5.462054E-4}, :neutral {:confidence 0.999064}, :positive {:confidence 3.897949E-4}}} {:id "495b0a9c-0ffc-4de9-982c-c972929110ea", :input "These are all facts", :prediction "neutral", :confidence 0.8203323, :labels {:negative {:confidence 0.12454694}, :neutral {:confidence 0.8203323}, :positive {:confidence 0.055120792}}} {:id "8a5789bb-02fb-489f-80ff-33e542fcaef8", :input "This is the worst thing", :prediction "negative", :confidence 0.92929465, :labels {:negative {:confidence 0.92929465}, :neutral {:confidence 0.06556252}, :positive {:confidence 0.0051428643}}} {:id "852b8ad6-8dd3-4343-bba8-649e21d77ff7", :input "I cannot stand this any longer", :prediction "negative", :confidence 0.92076635, :labels {:negative {:confidence 0.92076635}, :neutral {:confidence 0.074523635}, :positive {:confidence 0.004710017}}} {:id "78257bef-8c2e-45b8-aa25-68d1fad14b6f", :input "This is really annoying", :prediction "negative", :confidence 0.98556703, :labels {:negative {:confidence 0.98556703}, :neutral {:confidence 0.013624879}, :positive {:confidence 8.0808706E-4}}} {:id "ef9f8231-aa63-4be6-8799-d720cce7c401", :input "I am just plain fed up", :prediction "negative", :confidence 0.99926674, :labels {:negative {:confidence 0.99926674}, :neutral {:confidence 5.1193114E-4}, :positive {:confidence 2.2134688E-4}}}], :meta {:api_version {:version "2022-12-06"}}}
 #+end_src
 
 This is so much fun! Let's do a spam filter now.
 
-#+begin_src clojure
+#+begin_src clojure :session curren
 (def examples [{:text "Dermatologists don't like her!" :label "spam"}
                {:text "Hello, open to this?" :label "spam"}
                {:text "I need help please wire me $1000 right now" :label "spam"}
@@ -224,28 +243,28 @@ This is so much fun! Let's do a spam filter now.
                {:text  "Pre-read for tomorrow" :label "not spam"}])
 #+end_src
 
-#+begin_src clojure
+#+RESULTS:
+: #'user/examples
+
+#+begin_src clojure :session current
 (def inputs ["Confirm your email address"
              "hey i need u to send some $"])
 #+end_src
 
+#+RESULTS:
+: #'user/inputs
+
+
 Ready to go!
 
-#+begin_src clojure
+#+begin_src clojure :session current :exports both :results value org
 (classify :inputs inputs :examples examples)
 #+end_src
 
-
-
-(def trec-thousand #(let [data (:body (client/get "https://cogcomp.seas.upenn.edu/Data/QA/QC/train_2000.label"))
-                          lines (str/split data #"\n")]
-                      (for [line lines
-                            :let [s (str/split line #" ")
-                                  label (first s)]
-                            :when (not (some #{label} ["ENTY:religion" "NUM:temp" "NUM:weight"]))]
-                        {:text (str/join " " (rest s))
-                         :label  label})))
-
+#+RESULTS:
+#+begin_src org
+{:id "a9d9b25e-a712-4f2e-8c1a-ad6dff1bac40", :classifications [{:id "7794dd61-463c-4ad0-b8e9-addd87fef64d", :input "Confirm your email address", :prediction "not spam", :confidence 0.8082329, :labels {:not spam {:confidence 0.8082329}, :spam {:confidence 0.19176713}}} {:id "75314f50-5620-497f-a557-092691565bf8", :input "hey i need u to send some $", :prediction "spam", :confidence 0.9893421, :labels {:not spam {:confidence 0.01065793}, :spam {:confidence 0.9893421}}}], :meta {:api_version {:version "2022-12-06"}}}
+#+end_src
 
 
 *** Custom models (fine-tuning)
@@ -254,8 +273,11 @@ Ready to go!
 Cohere's platform gives you the ability to train a Large Language Model (LLM) and customize it with a dataset to excel at a specific task. Custom models can lead to some of the best-performing NLP models for a wide number of tasks.
 #+end_quote
 
+An example of such specialized tasks is a coding assistant. The [[https://github.com/ruped/clojurellm-data][ClojureLLM]] team curates data sources for the fine-tuning of an LLM for Clojure. We are going to do just that on Cohere's platform.
 
 
+** Utilities
+#+begin_src clojure
 (defn csv->jsonl [file]
   (let [lines (str/split-lines (slurp file))]
     (doseq [line lines
@@ -271,6 +293,10 @@ Cohere's platform gives you the ability to train a Large Language Model (LLM) an
   (let [jsonl (str/split-lines (:body (client/get url)))]
     (for [line jsonl]
       (json/parse-string line true))))
+
+#+end_src
+
+
 
 *** Chat
 
@@ -290,3 +316,30 @@ Cohere's platform gives you the ability to train a Large Language Model (LLM) an
     (doseq [l lines]
       (print (:text  l)))))
  #+end_src
+
+ 
+Translations
+
+(def french "Translate the following sentence into French: Hi, how are you?")
+(def hebrew "Translate the following sentence into Hebrew: Hi, how are you?")
+(def spanish "Translate the following sentence into Spanish: Hi, how are you?")
+
+Generating code
+
+(def clojure "Write a function in Clojure that produces the Fibonacci sequence.")
+
+
+(def cohere "Please explain to me how LLMs work")
+
+
+#+begin_src clojure
+(def trec-thousand #(let [data (:body (client/get "https://cogcomp.seas.upenn.edu/Data/QA/QC/train_2000.label"))
+                          lines (str/split data #"\n")]
+                      (for [line lines
+                            :let [s (str/split line #" ")
+                                  label (first s)]
+                            :when (not (some #{label} ["ENTY:religion" "NUM:temp" "NUM:weight"]))]
+                        {:text (str/join " " (rest s))
+                         :label  label})))
+#+end_src
+
