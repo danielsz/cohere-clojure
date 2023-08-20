@@ -1,6 +1,5 @@
 (ns cohere.dataset
-  (:require [clojure.string :as str]
-            [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]))
 
 (def default-file-config {:separator ""
                           :switchColumns false

@@ -57,7 +57,7 @@
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :body (json/generate-string data)}]
-    (-> (client/post (str api-endpoint "/finetune/CreateFinetune") options )
+    (-> (client/post (str api-endpoint "/finetune/CreateFinetune") options)
        :body)))
 
 (defn get-custom-model [id]
@@ -67,7 +67,7 @@
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :body (json/generate-string data)}]
-    (client/post (str api-endpoint "/finetune/GetFinetune") options )))
+    (client/post (str api-endpoint "/finetune/GetFinetune") options)))
 
 (defn get-custom-model-by-name [name]
   (let [data {:name name}
@@ -76,7 +76,7 @@
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :body (json/generate-string data)}]
-    (client/post (str api-endpoint "/finetune/GetFinetuneByName") options )))
+    (client/post (str api-endpoint "/finetune/GetFinetuneByName") options)))
 
 (defn get-custom-model-metrics [id]
   (let [data {:finetuneID id}
@@ -85,7 +85,7 @@
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :body (json/generate-string data)}]
-    (client/post (str api-endpoint "/finetune/GetFinetuneMetrics") options )))
+    (client/post (str api-endpoint "/finetune/GetFinetuneMetrics") options)))
 
 (defn list-custom-models [& {:keys [statuses before after orderBy]}]
   {:pre [(every? custom-model-status statuses)]}
@@ -98,6 +98,6 @@
                  :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
                            "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :body (json/generate-string data)}]
-    (-> (client/post (str api-endpoint "/finetune/ListFinetunes") options )
+    (-> (client/post (str api-endpoint "/finetune/ListFinetunes") options)
        :body)))
 

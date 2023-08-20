@@ -1,8 +1,15 @@
 (ns cohere.client
-  (:require [clj-http.client :as client]
-            [clojure.java.io :as io]))
+  (:require [clj-http.client :as client]))
 
 (def api-endpoint "https://api.cohere.ai")
+
+(defn check-api-key []
+  (let [options {:as :auto
+                 :content-type :json
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
+                           "Cohere-Version" (System/getProperty "cohere.api.version")}}]
+    (-> (client/post (str api-endpoint "/check-api-key") options )
+       :body)))
 
 (defn tokenize [& {:keys [text model] :or {model "command"}}]
   {:pre [(some? text) (<= 1 (count text) 65536)]}

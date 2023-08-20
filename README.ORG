@@ -254,7 +254,6 @@ This is so much fun! Let's do a spam filter now.
 #+RESULTS:
 : #'user/inputs
 
-
 Ready to go!
 
 #+begin_src clojure :session current :exports both :results value org
@@ -269,11 +268,39 @@ Ready to go!
 
 *** Custom models (fine-tuning)
 
+#+begin_src clojure :session current
+(require '[cohere.finetune :refer [create-custom-model]]
+         '[cohere.dataset :refer [jsonl-dataset]]
+         '[cheshire.core :as json])
+#+end_src
+
+#+RESULTS:
+
 #+begin_quote
 Cohere's platform gives you the ability to train a Large Language Model (LLM) and customize it with a dataset to excel at a specific task. Custom models can lead to some of the best-performing NLP models for a wide number of tasks.
 #+end_quote
 
-An example of such specialized tasks is a coding assistant. The [[https://github.com/ruped/clojurellm-data][ClojureLLM]] team curates data sources for the fine-tuning of an LLM for Clojure. We are going to do just that on Cohere's platform.
+An example of such specialized tasks is a coding assistant. The /ClojureLLM/ team curates data sources for the fine-tuning of an LLM for Clojure. If you clone their [[https://github.com/ruped/clojurellm-data][repository]] you will find a file in the ~data~ directory called ~clojure_llm_clojure_mailgroup_prompts_sample.json~. It is a /Json/ array made of /Json/ objects where each object contains a ~prompt~ and a ~response~ field. We will need to slightly modify that format to accommodate Cohere's requirements.  
+
+#+begin_src clojure :session current
+(def json-file (io/file "/home/daniel/Clojure/clojurellm-data/data/clojure_mailgroup/clojure_llm_clojure_mailgroup_prompts_sample.json"))
+(defn json->jsonl [file]
+  (let [data (json/parse-string (slurp json-file) true)]
+    (doseq [line data]
+      (spit (str (System/getProperty "java.io.tmpdir") "/" (.getName json-file)) (str (json/generate-string {:prompt (:prompt line) :completion (:response line )}) "\n") :append true))))
+#+end_src
+
+#+RESULTS:
+
+#+begin_src clojure :session current
+(json->jsonl json-file)
+(def clojure-dataset (jsonl-dataset :train-file (str (System/getProperty "java.io.tmpdir") "/" (.getName json-file))))
+(create-custom-model "clojure-llm" :generative clojure-dataset {})
+#+end_src
+
+#+RESULTS:
+
+
 
 
 ** Utilities
