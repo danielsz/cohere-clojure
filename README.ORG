@@ -1,4 +1,4 @@
-* Unofficial Cohere Clojure SDK
+* Cohere Clojure SDK
 
 #+begin_quote
 Cohere helps businesses explore, generate, search for, and act upon information... 
@@ -8,9 +8,13 @@ In other words, Cohere provides NLP services such as text generation, classifica
 
 ** Motivation
 
-Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning) or clustering jobs Cohere refers users to their SDKs. Hence the current Clojure port. This effort was undertaken by me, and in no way commissioned by Cohere. It is released as Open Source with the same license as Cohere's official SDK, under the MIT license.
+Cohere's platform exposes its functionality through a REST API and several SDKs. There is no Clojure SDK (duh!), but Clojure is apt at handling REST APIs, so everything should be good, right? Actually, not all features are available via the REST API. For tasks like creating custom models (fine-tuning) or clustering jobs, Cohere refers users to their SDKs. Hence the current Clojure port.
 
-Without making a statement on the merits of languages, we'll just remind the kind reader that with Clojure you get the functional paradigm, Lisp-style meta-programming and interactive development at the REPL.
+As to the broader question of why Clojure in the context of NLP or data science in general, the folks at [[https://scicloj.github.io/][Scicloj]] have more to say about that. I'll just mention quickly the functional paradigm, Lisp-style meta-programming and interactive development at the REPL.
+
+** Caveat Emptor
+
+The effort behind this project is personal and in no way commissioned by Cohere. I am releasing it as Open Source with the same license as Cohere's official SDK, the MIT license.
 
 ** Design Philosophy
 
@@ -51,18 +55,13 @@ For example:
 + finetune
 + chat
 + feedback
-
-TODO:
-+ dataset  
-+ embed-jobs
-+ cluster-jobs
-+ embed-codebook
-
++ check-api-key
+  
 ** Learning through Examples
 
 What follows is a distillation of Cohere's platform from the perspective of the Clojure SDK. If you feel you're missing context or background, please refer to Cohere's tutorials. In particular, Cohere's [[https://docs.cohere.com/docs/llmu][LLM University]] curriculum is very effective at bringing developers up to speed with the fundamentals of NLP and LLMs.
 
-Reading through those examples is fine, but running them at a REPL is better. Emacs users, please note that you can run the source blocks directly within the README since it is written in literate babel org-mode.
+Reading through those examples is fine, but running them at a REPL is better. Emacs users, please note that you can run the source blocks directly within the /README/ since it is written in literate [[https://orgmode.org/worg/org-contrib/babel/][Babel]] ~org-mode~.
 
 *** Generate
 
@@ -77,7 +76,7 @@ Reading through those examples is fine, but running them at a REPL is better. Em
 This endpoint generates realistic text conditioned on a given input.
 #+end_quote
 
-OpenAI is the name that burst into public consciousness overnight, and the desire to compare the offering of contenders is only natural. In OpenAI's [[https://platform.openai.com/docs/quickstart][quickstart]], they state that:
+OpenAI is the name that burst into public consciousness overnight, and the desire to compare the offering of contenders with it is only natural. In OpenAI's [[https://platform.openai.com/docs/quickstart][quickstart]], they state that:
 
 #+begin_quote
 OpenAI has trained cutting-edge language models that are very good at understanding and generating text. 
@@ -109,7 +108,7 @@ Let's try this on Cohere's platform.
 {:id "20161769-4efe-41cc-b8a5-3e11b959760b", :generations [{:id "9f8ff197-c397-4e25-9ed9-b88853affbd3", :text " Stallion Force, The Equine Avengers, Super Horse"}], :prompt "Suggest three names for an animal that is a superhero.\nAnimal: Cat\nNames: Captain Sharpclaw, Agent Fluffball, The Incredible Feline\nAnimal: Dog\nNames: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot\nAnimal: Horse\nNames:", :meta {:api_version {:version "2022-12-06"}}}
 #+end_src
 
-Most Cohere's endpoints are of the regular HTPP request/reponse type, but the ~generate~ endpoint can send its output over streaming HTTP. A JSON stream of events will be sent where the last one will contain the complete response, and a field called ~is_finished~ set to true. 
+Most Cohere's endpoints are of the regular /HTPP/ request/reponse type, but the ~generate~ endpoint can send its output over streaming /HTTP/. A /JSON/ stream of events will be sent where the last one will contain the complete response, and a field called ~is_finished~ set to true. 
 
 #+begin_src clojure :exports both :session current :results value org
 (with-open [stream (generate :prompt "Please tell me how we got here." :stream true :max_tokens 1200)]
@@ -128,8 +127,7 @@ If there is one application where generative AI is showing promise, it's probabl
  #+end_src
 
  #+RESULTS:
- | #'cohere.client/product        |
- | #'cohere.client/aida-framework |
+ : #'user/product
 
  #+begin_src clojure :session current :exports both :results value org
 (generate :prompt (product "Wireless Earbuds"))
@@ -140,7 +138,25 @@ If there is one application where generative AI is showing promise, it's probabl
  {:id "c85b68a6-eba7-471a-9a4a-ac413241dab6", :generations [{:id "3353ed15-058c-4b04-9562-207355351d5e", :text " Introducing our new wireless earbuds - the perfect accessory for all your on-the-go needs! Enjoy"}], :prompt "Generate a social ad copy for the product: Wireless Earbuds.", :meta {:api_version {:version "2022-12-06"}}}
  #+end_src
 
-Maybe what we had in mind was something else, maybe we wanted an ad copy that follows the [[https://en.wikipedia.org/wiki/AIDA_(marketing)][AIDA]] hierarchical model.
+Do we like the copy? If so, we can send our feedback.
+
+#+begin_src clojure
+(require '[cohere.client :refer [generate-feedback]])
+#+end_src
+
+#+begin_src clojure :session current :exports both :results value org
+(generate-feedback :request_id "3353ed15-058c-4b04-9562-207355351d5e" :good_response true)
+#+end_src
+
+This is how you would implement a thumbs-up element in the UI for assisted writing.
+As to the thumbs-down, the UI should provide an editable field with Cohere's response. If the user edits the response, tweaks it, then we can send the modified response back to Cohere:
+
+#+begin_src clojure :session current :exports both :results value org
+(def user-edited-response "Our new wireless earbuds are the perfect accessory for all your on-the-go needs! Enjoy!")
+(generate-feedback :request_id "3353ed15-058c-4b04-9562-207355351d5e" :good_response false :desired_response user-edited-response)
+#+end_src
+
+But maybe what we had in mind was something else, maybe we wanted an ad copy that follows the [[https://en.wikipedia.org/wiki/AIDA_(marketing)][AIDA]] hierarchical model. In that case, the user should be able to edit the prompt and provide more instructions. 
 
 #+begin_src clojure
 (defn aida-framework [product] (str "Generate an ad copy for the product: " product ".
@@ -303,77 +319,56 @@ An example of such specialized tasks is a coding assistant. The /ClojureLLM/ tea
 
 #+RESULTS:
 
-#+begin_src clojure
-#+end_src
+And now we can prompt the generative AI with our custom model.
 
-#+begin_src clojure
+#+begin_src clojure :session current :exports both :results value org
 (generate :model "40f8e1a2-09c7-4d58-a7f9-eae6b6b8c9fa-ft" :prompt "What is the difference between merge and assoc in Clojure?")
 #+end_src
 
-** Utilities
-#+begin_src clojure
-(defn csv->jsonl [file]
-  (let [lines (str/split-lines (slurp file))]
-    (doseq [line lines
-          :let [els (str/split line #"\t")]]
-      (spit "/tmp/eval.jsonl" (str (json/generate-string {:prompt (first els) :completion (last els)}) "\n") :append true))))
-
-(defn prepare-dataset []
-  (let [train-dataset-url "https://raw.githubusercontent.com/cohere-ai/notebooks/main/notebooks/data/content_rephrasing_train.jsonl"]
-    (spit "/tmp/train.jsonl" (:body (client/get train-dataset-url)))
-    (dataset/jsonl-dataset :train-file "/tmp/train.jsonl" :eval-file "/tmp/eval.jsonl")))
-
-(defn jsonl->json [url]
-  (let [jsonl (str/split-lines (:body (client/get url)))]
-    (for [line jsonl]
-      (json/parse-string line true))))
-
+#+RESULTS:
+#+begin_src org
+{:id "c6476cc5-6a36-4de4-b49b-c9d62d03e80b", :generations [{:id "9e56d8dc-beb7-47e9-bda1-71667b3c97af", :text " In Clojure, merge and assoc are both functions that are used to modify the value of a key in a map. However, there is a slight difference between the two functions. The merge function takes two maps as arguments and returns a new map with the union of the two maps. The assoc function takes a key and a value as arguments and returns a new map with the key added to the map. \n\nFor example, if you wanted to merge two maps, you could use the merge function. You could also use assoc to add a new key to a map."}], :prompt "What is the difference between merge and assoc in Clojure?", :meta {:api_version {:version "1"}}}
 #+end_src
-
 
 
 *** Chat
 
- Streaming responses
- 
- #+begin_src clojure
- (with-open [stream (chat :message "Hey! How are you doing today?" :stream true)]
-   (let [lines (json/parsed-seq (io/reader stream) true)]
-     (doseq [l lines]
-       (print (:text l)))))
- #+end_src
-
-
-#+begin_src clojure
-(with-open [stream (chat :message "Hey! How are you doing today?" :stream true)]
-  (let [lines (clojure.data.json/read (io/reader stream) true)]
-    (doseq [l lines]
-      (print (:text  l)))))
- #+end_src
-
- 
-Translations
-
-(def french "Translate the following sentence into French: Hi, how are you?")
-(def hebrew "Translate the following sentence into Hebrew: Hi, how are you?")
-(def spanish "Translate the following sentence into Spanish: Hi, how are you?")
-
-Generating code
-
-(def clojure "Write a function in Clojure that produces the Fibonacci sequence.")
-
-
-(def cohere "Please explain to me how LLMs work")
-
-
-#+begin_src clojure
-(def trec-thousand #(let [data (:body (client/get "https://cogcomp.seas.upenn.edu/Data/QA/QC/train_2000.label"))
-                          lines (str/split data #"\n")]
-                      (for [line lines
-                            :let [s (str/split line #" ")
-                                  label (first s)]
-                            :when (not (some #{label} ["ENTY:religion" "NUM:temp" "NUM:weight"]))]
-                        {:text (str/join " " (rest s))
-                         :label  label})))
+#+begin_src clojure :session current
+(require '[cohere.client :refer [chat]])
 #+end_src
 
+#+RESULTS:
+
+#+begin_src clojure :session current :exports both :results value org
+(chat :message "Hey! How are you doing today?")
+#+end_src
+
+#+RESULTS:
+#+begin_src org
+{:response_id "accad3b5-e438-4804-971b-0a41aa973c97", :text "As a large language model, I don't have feelings, but I'm ready to help you with whatever you need!", :generation_id "92390c48-921e-489f-adce-9f08edcb0339", :token_count {:prompt_tokens 70, :response_tokens 24, :total_tokens 94}, :meta {:api_version {:version "1"}}}
+#+end_src
+
+Like ~generate~, the ~chat~ endpoint supports streaming mode.
+ 
+ #+begin_src clojure :session current :exports both :results value org
+ (require '[cheshire.core :as json]
+          '[clojure.java.io :as io])
+ (with-open [stream (chat :message "Hey! How are you doing today?" :stream true)]
+   (doall (json/parsed-seq (io/reader stream) true)))
+ #+end_src
+
+ #+RESULTS:
+ #+begin_src org
+ ({:is_finished false, :event_type "text-generation", :text "I"} {:is_finished false, :event_type "text-generation", :text "'m"} {:is_finished false, :event_type "text-generation", :text " doing"} {:is_finished false, :event_type "text-generation", :text " great"} {:is_finished false, :event_type "text-generation", :text "!"} {:is_finished false, :event_type "text-generation", :text " How"} {:is_finished false, :event_type "text-generation", :text " about"} {:is_finished false, :event_type "text-generation", :text " you"} {:is_finished false, :event_type "text-generation", :text "?"} {:is_finished true, :event_type "stream-end", :response {:response_id "eaf755b1-b753-40c6-a6c1-e1b1afc7ed8b", :text "I'm doing great! How about you?", :generation_id "8bed3a93-2f12-4bef-854d-2422beccd1e2", :token_count {:prompt_tokens 70, :response_tokens 9, :total_tokens 79}}, :finish_reason "COMPLETE"})
+ #+end_src
+
+** Sponsorship
+
+The current state of the Cohere Clojure SDK is fairly comprehensive, but it is not exhaustive. The following endpoints are missing:
+
++ dataset  
++ embed-jobs
++ cluster-jobs
++ embed-codebook
+
+As it stands, that work is not a priority for me. Additionally, the Cohere Python SDK integrates with [[https://cohere-sdk.readthedocs.io/en/latest/][Read the Docs]], which allows to generate a [[https://cohere-sdk.readthedocs.io/_/downloads/en/latest/pdf/][PDF]] with the documentation. That too isn't on my priority list. With that being said, I welcome sponsors to fund the last-mile effort and bringing the Clojure SDK on parity with Cohere's own SDKs.
