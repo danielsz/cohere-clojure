@@ -32,11 +32,10 @@ Arguments are the same as in Cohere's API, but keywordized, for example, ~num_ge
 
 ** Configuration
 
-The client will use the user's Cohere API key as well as the desired API version via Java Properties. How they get there is up to the user.
-
+The user's Cohere API key will be accessed via Java Properties. How they get there is up to the user.
+For example:
 #+begin_src clojure
-(System/getProperty "cohere.api.key")
-(System/getProperty "cohere.api.version")
+(System/setProperty "cohere.api.key" "XXX-XXX")
 #+end_src
 
 ** The Endpoints
@@ -51,10 +50,14 @@ The client will use the user's Cohere API key as well as the desired API version
 + rerank
 + finetune
 + chat
++ feedback
 
 TODO:
 + dataset  
-  
++ embed-jobs
++ cluster-jobs
++ embed-codebook
+
 ** Learning through Examples
 
 What follows is a distillation of Cohere's platform from the perspective of the Clojure SDK. If you feel you're missing context or background, please refer to Cohere's tutorials. In particular, Cohere's [[https://docs.cohere.com/docs/llmu][LLM University]] curriculum is very effective at bringing developers up to speed with the fundamentals of NLP and LLMs.

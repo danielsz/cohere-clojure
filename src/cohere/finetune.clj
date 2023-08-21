@@ -1,9 +1,8 @@
 (ns cohere.finetune
   (:require [clj-http.client :as client]
             [cheshire.core :as json]
-            [cohere.dataset :as dataset]))
-
-(def api-endpoint "https://api.cohere.ai/v1")
+            [cohere.dataset :as dataset]
+            [cohere.client :refer [api-endpoint]]))
 
 (def model-type-map {:generative "GENERATIVE"
                      :classify "CLASSIFICATION"

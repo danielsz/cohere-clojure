@@ -15,7 +15,7 @@
                :tools-deps-alias :repl
                :repl-port :auto
                :repl-host "127.0.0.1"
-               :proxy {:enabled false
+               :proxy {:enabled true
                        :socks {:host "127.0.0.1"
                                :port "1080"
                                :version "5"
