@@ -3,35 +3,32 @@
 
 (def api-endpoint "https://api.cohere.ai")
 
+(defn do-request [endpoint options]
+  (let [resp (->> options
+                (merge {:as :auto
+                        :content-type :json
+                        :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
+                                  "Cohere-Version" (System/getProperty "cohere.api.version")
+                                  "Request-Source" "clojure-sdk"}})
+                (client/post (str api-endpoint endpoint)))]
+    (when-let [warning (get-in resp [:headers "x-api-warning"])]
+      (println warning))
+    (:body resp)))
+
 (defn check-api-key []
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}}]
-    (-> (client/post (str api-endpoint "/check-api-key") options )
-       :body)))
+  (do-request "/check-api-key" {}))
 
 (defn tokenize [& {:keys [text model] :or {model "command"}}]
   {:pre [(some? text) (<= 1 (count text) 65536)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}                 
-                 :form-params {:text text
+  (let [options {:form-params {:text text
                                :model model}}]
-    (-> (client/post (str api-endpoint "/tokenize") options )
-       :body)))
+    (do-request "/tokenize" options)))
 
 (defn detokenize [& {:keys [tokens model] :or {model "command"}}]
   {:pre [(some? tokens) (seq tokens) (every? integer? tokens)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:tokens tokens
+  (let [options {:form-params {:tokens tokens
                                :model model}}]
-    (-> (client/post (str api-endpoint "/detokenize") options)
-       :body)))
+    (do-request "/detokenize" options)))
 
 (defn rerank [& {:keys [query documents model top_n return_documents max_chunks_per_doc]
                     :or {model "rerank-english-v2.0"
@@ -42,44 +39,29 @@
          (some? documents)
          (some #{model} ["rerank-english-v2.0" "rerank-multilingual-v2.0"])
          (pos? top_n)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:query query
+  (let [options {:form-params {:query query
                                :documents documents
                                :return_documents return_documents
                                :max_chunks_per_doc max_chunks_per_doc
                                :top_n top_n
                                :model model}}]
-    (-> (client/post (str api-endpoint "/rerank") options)
-       :body)))
+    (do-request "/rerank" options)))
 
 (defn embed [& {:keys [texts model truncate] :or {model "embed-english-v2.0" truncate "END"}}]
   {:pre [(some #{truncate} ["NONE" "START" "END"]) (some? texts)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:truncate truncate
+  (let [options {:form-params {:truncate truncate
                                :texts texts
                                :model model}}]
-    (-> (client/post (str api-endpoint "/embed") options)
-       :body)))
+    (do-request "/embed" options)))
 
 (defn classify [& {:keys [examples inputs model preset truncate] :or {model "embed-english-v2.0" truncate "END"}}]
   {:pre [(some #{truncate} ["NONE" "START" "END"]) (some? examples) (some? inputs)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:truncate truncate
+  (let [options {:form-params {:truncate truncate
                                :examples examples
                                :inputs inputs
                                :model model
                                :preset preset}}]
-    (-> (client/post (str api-endpoint "/classify") options)
-       :body)))
+    (do-request "/classify" options)))
 
 (defn summarize [& {:keys [text length format model extractiveness temperature additional_command]
                     :or {model "command"
@@ -92,19 +74,14 @@
          (some #{format} ["paragraph" "bullets" "auto"])
          (some #{extractiveness} ["low" "medium" "high" "auto"])
          (<= 0 temperature 5)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:text text
+  (let [options {:form-params {:text text
                                :length length
                                :format format
                                :extractiveness extractiveness
                                :model model
                                :temperature temperature
                                :additional_command additional_command}}]
-    (-> (client/post (str api-endpoint "/summarize") options)
-       :body)))
+    (do-request "/summarize" options)))
 
 (defn generate [& {:keys [max_tokens num_generations truncate stream model p k presence_penalty frequency_penalty temperature prompt preset end_sequences stop_sequences return_likelihoods logit_bias]
                    :or {max_tokens 300
@@ -129,10 +106,7 @@
          (<= 0 p 0.99)
          (<= 0.0 presence_penalty 1.0)
          (< 1 max_tokens 4096)]}
-  (let [options {:as (if stream :stream :auto)
-                 :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+  (let [options {:as (if stream :stream :auto)                 
                  :form-params {:max_tokens max_tokens
                                :num_generations num_generations
                                :truncate truncate
@@ -149,16 +123,11 @@
                                :stop_sequences stop_sequences
                                :return_likelihoods return_likelihoods
                                :logit_bias logit_bias}}]
-    (-> (client/post (str api-endpoint "/generate") options)
-       :body)))
+    (do-request "/generate" options)))
 
 
 (defn generate-feedback [& {:keys [request_id good_response model desired_response flagged_response flagged_reason prompt annotator_id] :as args}]
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:request_id request_id
+  (let [options {:form-params {:request_id request_id
                                :good_response good_response
                                :desired_response desired_response
                                :flagged_response flagged_response
@@ -166,27 +135,16 @@
                                :prompt prompt
                                :model model
                                :annotator_id annotator_id}}]
-    (-> (client/post (str api-endpoint "/generate/feedback") options)
-       :body)))
+    (do-request "/generate/feedback" options)))
 
 (defn generate-feedback-preference [& {:keys [ratings model prompt annotator_id] :as args}]
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params args}]
-    (-> (client/post (str api-endpoint "/generate/feedback/preference") options)
-       :body)))
+  (let [options {:form-params args}]
+    (do-request "/generate/feedback/preference" options)))
 
 (defn detect-language [& {:keys [texts]}]
   {:pre [(some? texts) (seq texts) (every? string? texts)]}
-  (let [options {:as :auto
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :form-params {:texts texts}}]
-    (-> (client/post (str api-endpoint "/detect-language") options)
-       :body)))
+  (let [options {:form-params {:texts texts}}]
+    (do-request "/detect-language" options)))
 
 (defn chat [& {:keys [message conversation_id model return_chatlog return_prompt return_preamble chat_history preamble_override temperature max_tokens stream user_name p k logit_bias]
                :or {stream false
@@ -195,9 +153,6 @@
                     temperature 0.8}}]
   {:pre [(some? message) (<= 0.0 temperature 5.0) (boolean? stream)]}
   (let [options {:as (if stream :stream :auto)
-                 :content-type :json
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
                  :form-params {:message message
                                :conversation_id conversation_id
                                :model model
@@ -213,7 +168,6 @@
                                :p p
                                :k k
                                :logit_bias logit_bias}}]
-    (-> (client/post (str api-endpoint "/chat") options)
-       :body)))
+    (do-request "/chat" options)))
 
 
