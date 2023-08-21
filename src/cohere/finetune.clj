@@ -3,7 +3,7 @@
             [cheshire.core :as json]
             [cohere.dataset :as dataset]))
 
-(def api-endpoint "https://api.cohere.ai")
+(def api-endpoint "https://api.cohere.ai/v1")
 
 (def model-type-map {:generative "GENERATIVE"
                      :classify "CLASSIFICATION"
@@ -31,8 +31,7 @@
               :finetuneType (model-type model-type-map)}
         options {:as :auto
                  :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
                  :body (json/generate-string data)}]
     (-> (client/post (str api-endpoint "/finetune/GetFinetuneUploadSignedURL") options)
        :body)))
@@ -54,8 +53,7 @@
                (dataset/has-eval-file? dataset) (assoc-in [:settings :evalFiles] [(assoc (.file-config dataset) :path (upload-dataset model-type name (dataset/eval-file-name dataset) (dataset/get-eval-data dataset)))]))
         options {:as :auto
                  :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
                  :body (json/generate-string data)}]
     (-> (client/post (str api-endpoint "/finetune/CreateFinetune") options)
        :body)))
@@ -64,26 +62,29 @@
   (let [data {:finetuneID id}
         options {:as :auto
                  :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :body (json/generate-string data)}]
-    (client/post (str api-endpoint "/finetune/GetFinetune") options)))
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
+                 :body (json/generate-string data)}
+        resp (client/post (str api-endpoint "/finetune/GetFinetune") options)]
+    (when-let [warning (get-in resp [:headers "x-api-warning"])]
+      (println warning))
+    (:body resp)))
 
 (defn get-custom-model-by-name [name]
   (let [data {:name name}
         options {:as :auto
                  :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
-                 :body (json/generate-string data)}]
-    (client/post (str api-endpoint "/finetune/GetFinetuneByName") options)))
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
+                 :body (json/generate-string data)}
+        resp (client/post (str api-endpoint "/finetune/GetFinetuneByName") options)]
+    (when-let [warning (get-in resp [:headers "x-api-warning"])]
+      (println warning))
+    (:body resp)))
 
 (defn get-custom-model-metrics [id]
   (let [data {:finetuneID id}
         options {:as :auto
                  :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
                  :body (json/generate-string data)}]
     (client/post (str api-endpoint "/finetune/GetFinetuneMetrics") options)))
 
@@ -95,8 +96,7 @@
                       :orderBy orderBy}}
         options {:as :auto
                  :content-type :json                        
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Cohere-Version" (System/getProperty "cohere.api.version")}
+                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))}
                  :body (json/generate-string data)}]
     (-> (client/post (str api-endpoint "/finetune/ListFinetunes") options)
        :body)))
