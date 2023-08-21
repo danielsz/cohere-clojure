@@ -300,8 +300,12 @@ An example of such specialized tasks is a coding assistant. The /ClojureLLM/ tea
 
 #+RESULTS:
 
+#+begin_src clojure
+#+end_src
 
-
+#+begin_src clojure
+(generate :model "40f8e1a2-09c7-4d58-a7f9-eae6b6b8c9fa-ft" :prompt "What is the difference between merge and assoc in Clojure?")
+#+end_src
 
 ** Utilities
 #+begin_src clojure

@@ -126,7 +126,7 @@
     (do-request "/generate" options)))
 
 
-(defn generate-feedback [& {:keys [request_id good_response model desired_response flagged_response flagged_reason prompt annotator_id] :as args}]
+(defn generate-feedback [& {:keys [request_id good_response model desired_response flagged_response flagged_reason prompt annotator_id]}]
   (let [options {:form-params {:request_id request_id
                                :good_response good_response
                                :desired_response desired_response
@@ -135,11 +135,11 @@
                                :prompt prompt
                                :model model
                                :annotator_id annotator_id}}]
-    (do-request "/generate/feedback" options)))
+    (do-request "/feedback/generate" options)))
 
 (defn generate-feedback-preference [& {:keys [ratings model prompt annotator_id] :as args}]
   (let [options {:form-params args}]
-    (do-request "/generate/feedback/preference" options)))
+    (do-request "/feedback/generate/preference" options)))
 
 (defn detect-language [& {:keys [texts]}]
   {:pre [(some? texts) (seq texts) (every? string? texts)]}
