@@ -21,7 +21,7 @@ The effort behind this project is personal and in no way commissioned by Cohere.
 
 ** Design Philosophy
 
-This project follows [[https://en.wikipedia.org/wiki/Principle_of_least_astonishment][The Principle of Least Surprise]]. It doesn't require separate documentation than that of the [[official documentation][official API documentation]]. Cohere's API translates one to one with the provided Clojure functions. All function calls take keyword arguments, resulting in the following syntax:
+This project follows [[https://en.wikipedia.org/wiki/Principle_of_least_astonishment][The Principle of Least Surprise]]. It doesn't require separate documentation than that of the [[https://docs.cohere.com/reference/about][official API documentation]]. Cohere's API translates one to one with the provided Clojure functions. All function calls take keyword arguments, resulting in the following syntax:
 
 #+begin_src clojure
 (generate :prompt "Explain to me how LLMs work" :temperature 1.5)
