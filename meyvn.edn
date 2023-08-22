@@ -3,13 +3,14 @@
        :version "1.0.0"
        :name "cohere"}
  :packaging {:uberjar
-             {:enabled true
+             {:enabled false
               :build-properties {:main-class "cohere.core"}
               :excludes {:artifacts ["org.clojure:google-closure-library" "com.google.javascript:closure-compiler"]
                          :filters ["META-INF/*.SF" "META-INF/*.DSA" "META-INF/*.RSA"]}
               :include-source false
               :obfuscation {:enabled false}}
-             :jar {:enabled false}}
+             :jar {:enabled true}}
+ :distribution-management {:id "clojars", :url "https://clojars.org/repo"}
  :interactive {:enabled true
                :reload-on-save true
                :tools-deps-alias :repl
@@ -20,7 +21,6 @@
                                :port "1080"
                                :version "5"
                                :use-system-proxies false}}}
- 
  :profiles {:enabled true
             :development {:cohere-api-key "LghNYUI6REdWynYUYdhUzIKSijgZkuOR2yy4CPR3"
                           :cohere-api-version "2022-12-06"}
