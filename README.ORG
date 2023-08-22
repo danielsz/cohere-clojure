@@ -306,17 +306,18 @@ An example of such specialized tasks is a coding assistant. The /ClojureLLM/ tea
 
 #+begin_src clojure :session current
 (def json-file (io/file "/home/daniel/Clojure/clojurellm-data/data/clojure_mailgroup/clojure_llm_clojure_mailgroup_prompts_sample.json"))
+(def jsonl-file (str (System/getProperty "java.io.tmpdir") "/" (.getName json-file) "l")
 (defn json->jsonl [file]
   (let [data (json/parse-string (slurp json-file) true)]
     (doseq [line data]
-      (spit (str (System/getProperty "java.io.tmpdir") "/" (.getName json-file) "l") (str (json/generate-string {:prompt (:prompt line) :completion (:response line )}) "\n") :append true))))
+      (spit jsonl-file (str (json/generate-string {:prompt (:prompt line) :completion (:response line )}) "\n") :append true))))
 #+end_src
 
 #+RESULTS:
 
 #+begin_src clojure :session current
 (json->jsonl json-file)
-(def clojure-dataset (jsonl-dataset :train-file (str (System/getProperty "java.io.tmpdir") "/" (.getName json-file) "l")))
+(def clojure-dataset (jsonl-dataset :train-file jsonl-file))
 (create-custom-model "clojure-llm" :generative clojure-dataset {})
 #+end_src
 
