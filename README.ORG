@@ -1,4 +1,5 @@
-[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.danielsz/cohere.svg)](https://clojars.org/org.clojars.danielsz/cohere)
+
+[[https://clojars.org/org.clojars.danielsz/cohere][https://img.shields.io/clojars/v/org.clojars.danielsz/cohere.svg]]
 
 * Cohere Clojure SDK
 
