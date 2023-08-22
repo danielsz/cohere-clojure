@@ -305,7 +305,7 @@ Cohere's platform gives you the ability to train a Large Language Model (LLM) an
 An example of such specialized tasks is a coding assistant. The /ClojureLLM/ team curates data sources for the fine-tuning of an LLM for Clojure. If you clone their [[https://github.com/ruped/clojurellm-data][repository]] you will find a file in the ~data~ directory called ~clojure_llm_clojure_mailgroup_prompts_sample.json~. It is a /Json/ array made of /Json/ objects where each object contains a ~prompt~ and a ~response~ field. We will need to slightly modify that format to accommodate Cohere's requirements: the dataset needs to be in [[https://jsonlines.org/][/Json Lines/]] format. 
 
 #+begin_src clojure :session current
-(def json-file (io/file "/home/daniel/Clojure/clojurellm-data/data/clojure_mailgroup/clojure_llm_clojure_mailgroup_prompts_sample.json"))
+(def json-file (io/file "path/to/clojure_llm_clojure_mailgroup_prompts_sample.json"))
 (def jsonl-file (str (System/getProperty "java.io.tmpdir") "/" (.getName json-file) "l")
 (defn json->jsonl [file]
   (let [data (json/parse-string (slurp json-file) true)]
