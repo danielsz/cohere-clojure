@@ -7,8 +7,8 @@
   (let [resp (->> options
                 (merge {:as :auto
                         :content-type :json
-                        :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                                  "Request-Source" "clojure-sdk"}})
+                        :oauth-token (System/getProperty "cohere.api.key")
+                        :headers {"Request-Source" "clojure-sdk"}})
                 (client/post (str api-endpoint endpoint)))]
     (when-let [warning (get-in resp [:headers "x-api-warning"])]
       (println warning))
@@ -16,8 +16,8 @@
 
 (defn check-api-key []
   (let [options {:as :auto
-                 :headers {"Authorization" (str "Bearer " (System/getProperty "cohere.api.key"))
-                           "Request-Source" "clojure-sdk"}}]
+                 :oauth-token (System/getProperty "cohere.api.key")
+                 :headers {"Request-Source" "clojure-sdk"}}]
     (:body (client/post "https://api.cohere.ai/check-api-key" options))))
 
 (defn tokenize [& {:keys [text model] :or {model "command"}}]
