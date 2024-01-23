@@ -1,0 +1,5 @@
+* Changes
+** 1.0.1
+- Ability to require headers from the response. /num_tokens/ in the header is a field of interest when processing the billing cost in terms of tokens. Normally there is a meta field in the body for that, but the /generate/ endpoint doesn't report it when a streaming response is required.
+** 1.0.0
+- Initial version
