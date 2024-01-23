@@ -3,7 +3,7 @@
 
 (def api-endpoint "https://api.cohere.ai/v1")
 
-(defn do-request [endpoint options]
+(defn do-request [endpoint options & {:keys [with-headers] :or {with-headers false}}]
   (let [resp (->> options
                 (merge {:as :auto
                         :content-type :json
@@ -12,7 +12,9 @@
                 (client/post (str api-endpoint endpoint)))]
     (when-let [warning (get-in resp [:headers "x-api-warning"])]
       (println warning))
-    (:body resp)))
+    (if with-headers
+      {:headers (:headers resp) :body (:body resp)}
+      (:body resp))))
 
 (defn check-api-key []
   (let [options {:as :auto
@@ -85,7 +87,7 @@
                                :additional_command additional_command}}]
     (do-request "/summarize" options)))
 
-(defn generate [& {:keys [max_tokens num_generations truncate stream model p k presence_penalty frequency_penalty temperature prompt preset end_sequences stop_sequences return_likelihoods logit_bias]
+(defn generate [& {:keys [max_tokens num_generations truncate stream model p k presence_penalty frequency_penalty temperature prompt preset end_sequences stop_sequences return_likelihoods logit_bias with-headers with-headers]
                    :or {max_tokens 300
                         num_generations 1
                         truncate "END"
@@ -96,7 +98,8 @@
                         frequency_penalty 0
                         temperature 0.75
                         stream false
-                        return_likelihoods "NONE"}}]
+                        return_likelihoods "NONE"
+                        with-headers false}}]
   {:pre [(some? prompt)
          (<= 1 num_generations 5)
          (boolean? stream)
@@ -125,7 +128,7 @@
                                :stop_sequences stop_sequences
                                :return_likelihoods return_likelihoods
                                :logit_bias logit_bias}}]
-    (do-request "/generate" options)))
+    (do-request "/generate" options :with-headers with-headers)))
 
 
 (defn generate-feedback [& {:keys [request_id good_response model desired_response flagged_response flagged_reason prompt annotator_id]}]
